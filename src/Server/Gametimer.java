@@ -39,7 +39,7 @@ public class Gametimer implements Runnable {
                     statoGiocatore.Error = 0;
                     statoGiocatore.punteggio = 0;
                     statoGiocatore.GuessGruppo = 0;
-                    statoGiocatore.Indovinati.clear();
+                    statoGiocatore.indovintati.clear();
 
 
                 });
@@ -55,7 +55,7 @@ public class Gametimer implements Runnable {
                     try {
                         addr = ((InetSocketAddress) canale.getRemoteAddress()).getAddress(); // IP
 
-                        System.out.println("Timer scaduto! Nuova partita gameId: " + statoGioco.gameId);
+                        System.out.println("Timer scaduto! Nuova partita gameId: " + (statoGioco.gameId+1));
                         DatagramSend udp = new DatagramSend(addr, "Nuova partita!", porta);
                         // inviare il messaggio datagram
                         udp.Send();
@@ -64,7 +64,6 @@ public class Gametimer implements Runnable {
 //                        porteclient.remove(canale);
                         System.out.println("Errore a inviare il messaggio udp");;
                     }
-                    // apre il file e lo invia 16 parole a cliente
                 }
                 statoGioco.gameId+=1;
             } catch (  InterruptedException e) {

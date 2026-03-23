@@ -2,15 +2,14 @@ package Server;
 
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
-import com.sun.nio.sctp.AbstractNotificationHandler;
 
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class gamehandler {
     // il gamehandler abbiamo funzioni
@@ -36,7 +35,7 @@ public class gamehandler {
         }
     }
     // metodo che restituisce il 16 parole in arraylist
-   public static ArrayList<String> nextgame() {
+    public static ArrayList<String> nextgame() {
         // apriamo il file
         ArrayList<String> parola = new ArrayList<>();
             Gson gson = new Gson();
@@ -56,27 +55,47 @@ public class gamehandler {
         return parola;
     }
 
+
+
+
+
+    void GuessedGroup (){
+
+    }
+
+    // il metodo che gestisce le proposte
     public static void  gestiscisubmit( SocketChannel channelclient,String submitString, Fileplayerstats fps, StatoGiocatore statogiocatore){
         // traduciamo il proposta dall cliente
         Gson gson = new Gson();
         submit proposta = gson.fromJson(submitString,submit.class);
-        // appena arriva metto in array indovinati
-        ArrayList<String> ans = new ArrayList<>(proposta.words);
-       statogiocatore.Indovinati.addAll(proposta.words);
+        // mettiamo appena arriva la proposta
+        // appena arriva metto in array indovinat
+        Set<String> Guessed = new HashSet<>(proposta.words);
+
+        // ------------------------------------------------------------------------
+        // CONTROLLO: Il giocatore ha GIA' INDOVINATO esattamente queste 4 parole?
+        // Usiamo containsAll() che verifica se TUTTE e 4 le parole
+        // della proposta sono già dentro il cesto "correctans"
+        // ------------------------------------------------------------------------
+        if (!statogiocatore.indovintati.isEmpty() && statogiocatore.indovintati.containsAll(proposta.words)) {
+            // Se TUTTE le 4 parole proposte sono già nella lista delle risposte corrette...
+            ServerMethods.MsgsendClient(channelclient, "Hai già indovinato questo gruppo di parole!");
+            return; // Usciamo senza togliere vite
+        }
         // ora verificare con il hashset
         boolean trovato = false;
         for (groups gruppo : Solution){
             // il condizione per la prima volta
+
             if(new HashSet<>(gruppo.words).equals(new HashSet<>(proposta.words))){
                 // la proposta arrivata va salvato anche in array // facciamo due array
                 // 1 per risposte giuste e altre per risposte sbagliate
-                //TODO : pero controllo qui se sono gia dentro Indovinati allora invio il messaggio ed esco
-                if(statogiocatore.Indovinati.contains(ans)){
-                    ServerMethods.MsgsendClient(channelclient,"already guessed");
-                    return;
-                }
-//               String usrmane=  statogiocatore.username; // posso scrivere direttamente
-//                System.out.println("correctans"+ statogiocatore.CorrectAns.getFirst());
+//                //TODO : pero controllo qui se sono gia dentro Indovinati allora invio il messaggio ed esco
+//                statogiocatore.correctans.addAll(proposta.words);
+//                // mostriamo la proposta
+                statogiocatore.indovintati.addAll(proposta.words);
+//
+                // mettiamo la proposta giusta
                 statogiocatore.GuessGruppo +=1;
                 // per ogni prposta giusto 6 punti
                 statogiocatore.punteggio+=6*statogiocatore.GuessGruppo;
@@ -87,16 +106,11 @@ public class gamehandler {
                     statogiocatore.statistiche.PunteggioTotale +=statogiocatore.punteggio;
                     statogiocatore.win = true;
                     // mostriamo il punteggio
-                    // se ha vinto allora devo aggiornare playerstats
-//                    if (statogiocatore.statistiche == null) {
-//                        statogiocatore.statistiche = new Playerstats();
-//                    }
                     statogiocatore.statistiche.puzzlewon +=1;
                     // statogiocatore.statistiche e' null percio non prende
                     // devo dire guarda se nuovo allora crea lo
                     statogiocatore.statistiche.mistakehistrogram[statogiocatore.Error]++;
                     // qui dobbiamo aggionare tutto per avere statistiche del giocatore
-                    // prendo
                     statogiocatore.statistiche.PuzzledCompleted+=1;
                     if(statogiocatore.Error == 0){
                         statogiocatore.statistiche.perfecetpuzzle +=1;
@@ -114,17 +128,15 @@ public class gamehandler {
                     return;
                 }
                 trovato =  true;
-                ServerMethods.MsgsendClient(channelclient,"Correct  Answer! THEME"+ gruppo.theme);
+                ServerMethods.MsgsendClient(channelclient,"Correct  Answer! THEME: "+ gruppo.theme);
                 break;
             }
         }
         if (!trovato) {
             statogiocatore.Error++;
             statogiocatore.vita--;
-            String message = "SBAGLIATO!!  Rimangono "+ statogiocatore.vita +" tentativi";
-
-
-
+            statogiocatore.indovintati.addAll(proposta.words);
+            String message = "SBAGLIATO!!  Rimangono "+ statogiocatore.vita +" tentativi.";
             if(statogiocatore.vita ==0){
                 statogiocatore.loss = true;
                 statogiocatore.statistiche.puzzleloss +=1;

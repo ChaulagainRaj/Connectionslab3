@@ -1,8 +1,6 @@
 package Server;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class StatoGiocatore {
     String username; // chi e'
@@ -13,8 +11,6 @@ public class StatoGiocatore {
     boolean loss = false;
     int vita = 4; // puo fare fino a 4 guess
     Playerstats statistiche = new Playerstats();
-
-    ArrayList<String> Indovinati= new ArrayList<>(); // per tenere il gruppo inviato , pero si mette solo quelli indovinate
+    Set<String> indovintati = new HashSet<>();
     // correttamente
-    ArrayList<String> WrongAns = new ArrayList<>();
 }

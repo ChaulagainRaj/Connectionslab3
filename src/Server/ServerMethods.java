@@ -275,7 +275,8 @@ public class ServerMethods {
                 break;
             }
             case "requestGameInfo": {
-                System.out.println("La richiesta fatto dal giocatore: "+ statogiocatore.username);
+                String username = LoggedClinet.get(clientchannel);
+                System.out.println("La richiesta fatto dal giocatore: "+ username);
                 int gameid = statoGioco.gameId;
                 MsgsendClient(clientchannel, String.valueOf(gameid));
                 break;
@@ -332,19 +333,21 @@ public class ServerMethods {
                 } else if (details.has("playerName")) {
                     String targetplayer = details.get("playerName").getAsString();
                     // controlliamo se esiste il player
-
+                    boolean trovato = false;
                     for (int i = 0; i < classfica.size(); i++) {
                         Map.Entry<String, StatoGiocatore> entry = classfica.get(i);
-
                         if (entry.getKey().equals(targetplayer)) {
                             res.append("Name:" + targetplayer+ " | " +
                                     "Posizione:" + (i + 1)+
                                     " | " + "Punteggio:" + classfica.get(i).getValue().statistiche.PunteggioTotale+"\n");
+                            // se qui significa trovato
+                            trovato = true;
+                            break;
                         }
-                        else {
-                            MsgsendClient(clientchannel,"Giocatore non logged");
-                            return;
-                        }
+                    }
+                    if(!trovato){
+                        MsgsendClient(clientchannel, "Giocatore non logged");
+                        return;
                     }
                 } else {
                     // Tutta la classifica
